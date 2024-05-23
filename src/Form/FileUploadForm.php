@@ -15,12 +15,12 @@ class FileUploadForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form['file_upload'] = [
       '#type' => 'managed_file',
-      '#title' => $this->t('Upload File'),
+      '#title' => $this->t('Upload Fil'),
       '#upload_location' => 'private://edoc_files',
       '#required' => TRUE,
-      '#description' => $this->t('Upload fil.'),
+      '#description' => $this->t('Tilladte filtyper: <br> .jpg .jpeg .gif .png .txt .doc .docx .xls .pdf .ppt .pps .odt .ods .odp .xml'),
       '#upload_validators' => [
-        'file_validate_extensions' => ['jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp xml'],
+        'file_validate_extensions' => ['jpg jpeg gif png txt doc docx xls pdf ppt pps odt ods odp xml'],
       ],
     ];
   
@@ -38,6 +38,6 @@ class FileUploadForm extends FormBase {
     $file->setPermanent();
     $file->save();
 
-    $this->messenger()->addMessage($this->t('File uploaded successfully.'));
+    $this->messenger()->addMessage($this->t('Fil uploadet!'));
   }
 }
