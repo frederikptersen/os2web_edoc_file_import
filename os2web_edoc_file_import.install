@@ -1,0 +1,133 @@
+<?php
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
+
+/**
+ * Implements hook_install().
+ */
+function os2web_edoc_file_import_install() {
+  os2web_edoc_file_import_add_case_fields();
+  os2web_edoc_file_import_add_document_fields();
+}
+
+/**
+ * Adds fields to Case content type.
+ */
+function os2web_edoc_file_import_add_case_fields() {
+  if (!FieldStorageConfig::loadByName('node', 'field_case_id')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_case_id',
+      'entity_type' => 'node',
+      'type' => 'string',
+      'settings' => [
+        'max_length' => 255,
+        'is_ascii' => TRUE,
+        'case_sensitive' => FALSE,
+      ],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+
+    FieldConfig::create([
+      'field_storage' => FieldStorageConfig::loadByName('node', 'field_case_id'),
+      'bundle' => 'esdh_case', 
+      'label' => 'Case ID',
+      'required' => TRUE,
+    ])->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('node', 'field_case_name')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_case_name',
+      'entity_type' => 'node',
+      'type' => 'string',
+      'settings' => [
+        'max_length' => 255,
+        'is_ascii' => TRUE,
+        'case_sensitive' => FALSE,
+      ],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+
+    FieldConfig::create([
+      'field_storage' => FieldStorageConfig::loadByName('node', 'field_case_name'),
+      'bundle' => 'esdh_case', 
+      'label' => 'Case Name',
+      'required' => TRUE,
+    ])->save();
+  }
+}
+
+/**
+ * Adds fields to Document content type.
+ */
+function os2web_edoc_file_import_add_document_fields() {
+  // Add Document ID field.
+  if (!FieldStorageConfig::loadByName('node', 'field_document_id')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_document_id',
+      'entity_type' => 'node',
+      'type' => 'string',
+      'settings' => [
+        'max_length' => 255,
+        'is_ascii' => TRUE,
+        'case_sensitive' => FALSE,
+      ],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+
+    FieldConfig::create([
+      'field_storage' => FieldStorageConfig::loadByName('node', 'field_document_id'),
+      'bundle' => 'esdh_document', 
+      'label' => 'Document ID',
+      'required' => TRUE,
+    ])->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('node', 'field_document_title')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_document_title',
+      'entity_type' => 'node',
+      'type' => 'string',
+      'settings' => [
+        'max_length' => 255,
+        'is_ascii' => TRUE,
+        'case_sensitive' => FALSE,
+      ],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+
+    FieldConfig::create([
+      'field_storage' => FieldStorageConfig::loadByName('node', 'field_document_title'),
+      'bundle' => 'esdh_document',
+      'label' => 'Document Title',
+      'required' => TRUE,
+    ])->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('node', 'field_case_reference')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_case_reference',
+      'entity_type' => 'node',
+      'type' => 'entity_reference',
+      'settings' => [
+        'target_type' => 'node',
+        'handler' => 'default',
+      ],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+
+    FieldConfig::create([
+      'field_storage' => FieldStorageConfig::loadByName('node', 'field_case_reference'),
+      'bundle' => 'esdh_document',
+      'label' => 'Case Reference',
+      'required' => FALSE,
+    ])->save();
+  }
+}
