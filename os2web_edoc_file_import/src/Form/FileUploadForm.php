@@ -18,14 +18,17 @@ class FileUploadForm extends FormBase {
       '#title' => $this->t('Upload File'),
       '#upload_location' => 'private://edoc_files',
       '#required' => TRUE,
-      '#description' => $this->t('Upload an XML file.'),
+      '#description' => $this->t('Upload fil.'),
+      '#upload_validators' => [
+        'file_validate_extensions' => ['jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp xml'],
+      ],
     ];
-
+  
     $form['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Upload'),
     ];
-
+  
     return $form;
   }
 
