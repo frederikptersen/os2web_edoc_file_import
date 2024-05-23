@@ -13,7 +13,18 @@ class FileImportService {
   }
 
   public function deleteCaseOrDocument($caseNumber, $fileID) {
-    // Logik skal laves til at slette en fil eller dokument.
+    $storage = $this->entityTypeManager->getStorage('node');
+
+    $cases = $storage->loadByProperties(['type' => 'esdh_case', 'field_case_id' => $caseNumber]);
+    $documents = $storage->loadByProperties(['type' => 'esdh_document', 'field_document_id' => $fileID]);
+
+    if ($case = reset($cases)) {
+      $case->delete();
+    }
+
+    if ($document = reset($documents)) {
+      $document->delete();
+    }
   }
 
   public function createCaseOrDocument($caseNumber, $caseName, $fileName, $fileID) {
@@ -34,7 +45,20 @@ class FileImportService {
   }
 
   public function updateCaseOrDocument($caseNumber, $caseName, $fileName, $fileID) {
-    // Logik skal laves til at opdatere en eksisterende fil eller dokument.
+    $storage = $this->entityTypeManager->getStorage('node');
+
+    $cases = $storage->loadByProperties(['type' => 'esdh_case', 'field_case_id' => $caseNumber]);
+    $documents = $storage->loadByProperties(['type' => 'esdh_document', 'field_document_id' => $fileID]);
+
+    if ($case = reset($cases)) {
+      $case->set('title', $caseName);
+      $case->save();
+    }
+
+    if ($document = reset($documents)) {
+      $document->set('title', $fileName);
+      $document->save();
+    }
   }
 
   public function processFile($file_path) {
