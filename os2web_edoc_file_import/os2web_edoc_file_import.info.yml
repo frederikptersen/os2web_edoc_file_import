@@ -1,0 +1,9 @@
+name: 'OS2Web eDoc File Import'
+type: module
+description: 'Modul til importering af eDoc filer.'
+core_version_requirement: ^10
+package: Custom
+dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:system
