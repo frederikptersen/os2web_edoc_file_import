@@ -1,3 +1,10 @@
+os2web_edoc_file_import.admin_settings:
+  title: 'eDoc File Import Indstillinger'
+  description: 'Configuration settings for OS2Web eDoc File Import.'
+  parent: system.admin_config
+  route_name: os2web_edoc_file_import.settings
+  weight: 100
+
 os2web_edoc_file_import.upload_form:
   title: 'Upload eDoc File'
   description: 'Upload an eDoc XML file for import.'
