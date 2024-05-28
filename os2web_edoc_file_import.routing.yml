@@ -13,3 +13,85 @@ os2web_edoc_file_import.upload_form:
     _title: 'Upload eDoc File'
   requirements:
     _permission: 'administer site configuration'
+
+#os2web_edoc_file_import.file_view:
+#  path: '/admin/os2web-edoc-file-import/{file}/view'
+#  defaults:
+#    _controller: '\Drupal\os2web_edoc_file_import\Controller\FileController::view'
+#    _title: 'View File'
+#  requirements:
+#    _permission: 'view file entity'
+
+os2web_edoc_file_import.file_edit:
+  path: '/admin/os2web-edoc-file-import/{file}/edit'
+  defaults:
+    _form: '\Drupal\os2web_edoc_file_import\Form\FileEditForm'
+    _title: 'Edit File'
+  requirements:
+    _permission: 'edit file entity'
+
+os2web_edoc_file_import.file_add:
+  path: '/admin/os2web-edoc-file-import/add'
+  defaults:
+    _form: '\Drupal\os2web_edoc_file_import\Form\FileAddForm'
+    _title: 'Add File'
+  requirements:
+    _permission: 'add file entity'
+
+os2web_edoc_file_import.file_delete:
+  path: '/admin/os2web-edoc-file-import/{file}/delete'
+  defaults:
+    _form: '\Drupal\os2web_edoc_file_import\Form\FileDeleteForm'
+    _title: 'Delete File'
+  requirements:
+    _permission: 'delete file entity'
+
+# Routes for EsdhCase entity
+os2web_edoc_file_import.esdh_case_add_form:
+  path: '/admin/content/esdh-case/add'
+  defaults:
+    _entity_form: 'esdh_case.add'
+    _title: 'Add new case'
+  requirements:
+    _permission: 'administer esdh case entities'
+
+os2web_edoc_file_import.esdh_case_edit_form:
+  path: '/admin/content/esdh-case/{esdh_case}/edit'
+  defaults:
+    _entity_form: 'esdh_case.edit'
+    _title: 'Edit case'
+  requirements:
+    _permission: 'administer esdh case entities'
+
+os2web_edoc_file_import.esdh_case_delete_form:
+  path: '/admin/content/esdh-case/{esdh_case}/delete'
+  defaults:
+    _entity_form: 'esdh_case.delete'
+    _title: 'Delete case'
+  requirements:
+    _permission: 'administer esdh case entities'
+
+# Routes for EsdhDocument entity
+os2web_edoc_file_import.esdh_document_add_form:
+  path: '/admin/content/esdh-document/add'
+  defaults:
+    _entity_form: 'esdh_document.add'
+    _title: 'Add new document'
+  requirements:
+    _permission: 'administer esdh document entities'
+
+os2web_edoc_file_import.esdh_document_edit_form:
+  path: '/admin/content/esdh-document/{esdh_document}/edit'
+  defaults:
+    _entity_form: 'esdh_document.edit'
+    _title: 'Edit document'
+  requirements:
+    _permission: 'administer esdh document entities'
+
+os2web_edoc_file_import.esdh_document_delete_form:
+  path: '/admin/content/esdh-document/{esdh_document}/delete'
+  defaults:
+    _entity_form: 'esdh_document.delete'
+    _title: 'Delete document'
+  requirements:
+    _permission: 'administer esdh document entities'
