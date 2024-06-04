@@ -1,5 +1,9 @@
 <?php
 
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\node\Entity\Node;
+use Drupal\file\Entity\File;
+
 /**
  * Implements hook_cron().
  */
@@ -13,7 +17,7 @@ function os2web_edoc_file_import_cron() {
     return;
   }
 
-  $xml_files = glob($import_path . '/*.xml');
+  $xml_files = \Drupal::service('file_system')->scanDirectory($import_path, "/\.xml$/i");
   foreach ($xml_files as $file) {
     os2web_edoc_file_import_process_file($file);
   }
@@ -23,14 +27,16 @@ function os2web_edoc_file_import_cron() {
  * Processes a single XML file.
  */
 function os2web_edoc_file_import_process_file($file) {
-  $xml = simplexml_load_file($file);
+  $xml = simplexml_load_file($file->uri);
 
   // Handle create, update, delete based on XML content.
   if (!empty($xml->Created)) {
-    // Create a new case or document.
+    // Create a new case.
     if (!empty($xml->CaseNumber)) {
       os2web_edoc_file_import_create_or_update_case($xml);
-    } elseif (!empty($xml->FileID)) {
+    }
+    // Create a new document.
+    if (!empty($xml->FileID)) {
       os2web_edoc_file_import_create_or_update_document($xml);
     }
   } elseif (!empty($xml->Updated)) {
@@ -47,11 +53,12 @@ function os2web_edoc_file_import_process_file($file) {
     }
   }
 
-  $imported_path = dirname($file) . '/imported';
-  if (!file_exists($imported_path)) {
-    mkdir($imported_path, 0755, TRUE);
-  }
-  rename($file, $imported_path . '/' . basename($file));
+//TODO:
+//  $imported_path = dirname($file) . '/imported';
+//  if (!file_exists($imported_path)) {
+//    mkdir($imported_path, 0755, TRUE);
+//  }
+//  rename($file, $imported_path . '/' . basename($file));
 }
 
 /**
@@ -60,15 +67,15 @@ function os2web_edoc_file_import_process_file($file) {
 function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
   $case = NULL;
   if ($update) {
-    $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_case_id' => (string) $xml->CaseNumber]);
+    $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_sagsnummer' => (string) $xml->CaseNumber]);
     $case = reset($cases);
   }
 
   if (!$case) {
-    $case = \Drupal\node\Entity\Node::create([
-      'type' => 'case',
+    $case = Node::create([
+      'type' => 'esdh_case',
       'title' => (string) $xml->CaseName,
-      'field_case_id' => (string) $xml->CaseNumber,
+      'field_sagsnummer' => (string) $xml->CaseNumber,
       'field_case_name' => (string) $xml->CaseName,
     ]);
   } else {
@@ -85,24 +92,55 @@ function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
 function os2web_edoc_file_import_create_or_update_document($xml, $update = FALSE) {
   $document = NULL;
   if ($update) {
-    $documents = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_document_id' => (string) $xml->FileID]);
+    $documents = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_document', 'field_document_id' => (string) $xml->FileID]);
     $document = reset($documents);
   }
 
   if (!$document) {
-    $document = \Drupal\node\Entity\Node::create([
-      'type' => 'document',
+    $config = \Drupal::config('os2web_edoc_file_import.settings');
+    $import_path = $config->get('import_path');
+
+    $fileName = (string) $xml->FileName;
+    $fileId = (string) $xml->FileID;
+    $file = NULL;
+
+    $filepath = "$import_path/Files/$fileId" . '_' . $fileName;
+
+    if (file_exists($filepath)) {
+      $edocPublicDirectory = 'public://edoc_files';
+
+      /** @var \Drupal\Core\File\FileSystemInterface $file_system */
+      $file_system = \Drupal::service('file_system');
+      $file_system->prepareDirectory($edocPublicDirectory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+      $file_system->copy($filepath, $edocPublicDirectory . '/' . basename($filepath), FileSystemInterface::EXISTS_REPLACE);
+
+      $file = File::create([
+        'filename' => basename((string) $xml->FileName),
+        'uri' => $edocPublicDirectory . '/' . basename($filepath),
+        'status' => 1,
+        'uid' => 1,
+      ]);
+      $file->save();
+    }
+
+    $document = Node::create([
+      'type' => 'esdh_document',
       'title' => (string) $xml->FileName,
       'field_document_id' => (string) $xml->FileID,
       'field_document_title' => (string) $xml->FileName,
+      'field_case_id' => (string) $xml->CaseNumber,
     ]);
+    // Setting file.
+    if ($file) {
+      $document->set('field_case_file', $file->id());
+    }
   } else {
     $document->setTitle((string) $xml->FileName);
     $document->set('field_document_title', (string) $xml->FileName);
   }
 
   if (!empty($xml->CaseNumber)) {
-    $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_case_id' => (string) $xml->CaseNumber]);
+    $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_sagsnummer' => (string) $xml->CaseNumber]);
     $case = reset($cases);
     if ($case) {
       $document->set('field_case_reference', $case->id());
