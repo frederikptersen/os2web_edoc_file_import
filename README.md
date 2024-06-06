@@ -10,4 +10,4 @@ Drupal 10 modul til import af eDoc XML-filer. Modulet håndterer oprettelse, opd
 
 ## Brug
 
-Gå til `admin/config/system/os2web_edoc_file_import` for at uploade filer.
+Gå til stien `admin/config/system/os2web_edoc_file_import` for at sætte stien, som der importeres fra.
