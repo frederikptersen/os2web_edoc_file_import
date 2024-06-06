@@ -53,12 +53,12 @@ function os2web_edoc_file_import_process_file($file) {
     }
   }
 
-//TODO:
-//  $imported_path = dirname($file) . '/imported';
-//  if (!file_exists($imported_path)) {
-//    mkdir($imported_path, 0755, TRUE);
-//  }
-//  rename($file, $imported_path . '/' . basename($file));
+//TODO: Moving XML after processed
+$processed_path = dirname($file->uri) . '/processed';
+  if (!file_exists($processed_path)) {
+    mkdir($processed_path, 0755, TRUE);
+  }
+  rename($file->uri, $processed_path . '/' . basename($file->uri));
 }
 
 /**
