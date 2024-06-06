@@ -53,7 +53,7 @@ function os2web_edoc_file_import_process_file($file) {
     }
   }
 
-//TODO: Moving XML after processed
+//ÆNDRING HER TODO: Moving XML after processed
 $processed_path = dirname($file->uri) . '/processed';
   if (!file_exists($processed_path)) {
     mkdir($processed_path, 0755, TRUE);
