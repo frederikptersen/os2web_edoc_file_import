@@ -20,7 +20,7 @@ os2web_edoc_file_import.upload_form:
 #    _controller: '\Drupal\os2web_edoc_file_import\Controller\FileController::view'
 #    _title: 'View File'
 #  requirements:
-#    _permission: 'view file entity'
+#    _permission: 'view file entity' .
 
 os2web_edoc_file_import.file_edit:
   path: '/admin/os2web-edoc-file-import/{file}/edit'

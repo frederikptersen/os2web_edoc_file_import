@@ -4,6 +4,7 @@
  * Implements hook_cron().
  */
 function os2web_edoc_file_import_cron() {
+  print_r("function os2web_edoc_file_import_cron");
   // Get the import path from configuration.
   $config = \Drupal::config('os2web_edoc_file_import.settings');
   $import_path = $config->get('import_path');
@@ -14,8 +15,10 @@ function os2web_edoc_file_import_cron() {
   }
 
   $xml_files = glob($import_path . '/*.xml');
+  print_r($import_path);
   foreach ($xml_files as $file) {
-    os2web_edoc_file_import_process_file($file);
+  print_r($file);  
+  os2web_edoc_file_import_process_file($file);
   }
 }
 
