@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\os2web_edoc_file_import\Service\FileImportService;
 use Drupal\node\Entity\Node;
 use Drupal\file\Entity\File;
 

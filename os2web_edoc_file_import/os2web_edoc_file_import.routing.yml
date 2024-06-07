@@ -5,11 +5,3 @@ os2web_edoc_file_import.settings:
     _title: 'eDoc File Import Indstillinger'
   requirements:
     _permission: 'administer site configuration'
-
-os2web_edoc_file_import.upload_form:
-  path: '/admin/os2web-edoc-file-import/upload'
-  defaults:
-    _form: '\Drupal\os2web_edoc_file_import\Form\FileUploadForm'
-    _title: 'Upload eDoc File'
-  requirements:
-    _permission: 'administer site configuration'
