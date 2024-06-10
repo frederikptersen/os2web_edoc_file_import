@@ -4,21 +4,22 @@ namespace Drupal\os2web_edoc_file_import\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class SettingsForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
    */
-  protected function getEditableConfigNames() {
-    return ['os2web_edoc_file_import.settings'];
+  public function getFormId() {
+    return 'os2web_edoc_file_import_settings_form';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getFormId() {
-    return 'os2web_edoc_file_import_settings_form';
+  protected function getEditableConfigNames() {
+    return ['os2web_edoc_file_import.settings'];
   }
 
   /**
@@ -31,7 +32,6 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Import Path'),
       '#default_value' => $config->get('import_path'),
-      '#description' => $this->t('Hvor filer vil blive importeret fra. Brug Drupal\'s "private://"'),
       '#required' => TRUE,
     ];
 
@@ -46,7 +46,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('import_path', $form_state->getValue('import_path'))
       ->save();
 
-    parent::submitForm($form, $form_state);
+    $this->messenger()->addMessage($this->t('Configuration saved.'));
   }
 
 }
