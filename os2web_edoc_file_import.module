@@ -102,6 +102,9 @@ function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
  * Creates or updates a document based on XML data.
  */
 function os2web_edoc_file_import_create_or_update_document($xml, $update = FALSE) {
+  // Using transliteration to replace Danish chars.
+  $trans = \Drupal::transliteration();
+
   $document = NULL;
   if ($update) {
     print_r($xml);
@@ -144,7 +147,7 @@ print_r('Her er du ' . $document);
       'type' => 'esdh_document',
       'title' => (string) $xml->FileName,
       'field_document_id' => (string) $xml->FileID,
-      'field_document_title' => (string) $xml->FileName,
+      'field_document_title' => $trans->transliterate($xml->FileName),
       'field_case_id' => (string) $xml->CaseNumber,
     ]);
     // Setting file.
@@ -154,7 +157,7 @@ print_r('Her er du ' . $document);
     }
   } else {
     $document->setTitle((string) $xml->FileName);
-    $document->set('field_document_title', (string) $xml->FileName);
+    $document->set('field_document_title', $trans->transliterate($xml->FileName));
     \Drupal::logger('os2web_edoc_file_import')->info('Updated document: ' . (string) $xml->FileID);
 
   }
