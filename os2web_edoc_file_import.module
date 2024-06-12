@@ -193,3 +193,4 @@ function os2web_edoc_file_import_delete_document($xml) {
     \Drupal::logger('os2web_edoc_file_import')->warning('No document found to delete with FileID: ' . (string) $xml->FileID);
   }
 }
+}
