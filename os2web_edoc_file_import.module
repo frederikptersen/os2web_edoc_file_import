@@ -61,12 +61,19 @@ function os2web_edoc_file_import_process_file($file) {
 
 //ÆNDRING HER TODO: Moving XML after processed
 $processed_path = dirname($file->uri) . '/processed';
-  if (!file_exists($processed_path)) {
-    mkdir($processed_path, 0755, TRUE);
-    \Drupal::logger('os2web_edoc_file_import')->info('Created processed directory: ' . $processed_path);
-  }
-  rename($file->uri, $processed_path . '/' . basename($file->uri));
-  \Drupal::logger('os2web_edoc_file_import')->info('Moved file to processed directory: ' . $file->uri);
+if (!file_exists($processed_path)) {
+  mkdir($processed_path, 0755, TRUE);
+  \Drupal::logger('os2web_edoc_file_import')->info('Created processed directory: ' . $processed_path);
+}
+
+$new_path = $processed_path . '/' . basename($file->uri);
+rename($file->uri, $new_path);
+\Drupal::logger('os2web_edoc_file_import')->info('Moved file to processed directory: ' . $new_path);
+
+// Slet den oprindelige fil fra hovedmappen (import mappen)
+if (file_exists($file->uri)) {
+  unlink($file->uri);
+  \Drupal::logger('os2web_edoc_file_import')->info('Deleted original file from main folder: ' . $file->uri);
 }
 
 /**
