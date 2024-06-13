@@ -5,6 +5,30 @@ use Drupal\node\Entity\Node;
 use Drupal\file\Entity\File;
 
 /**
+ * Implements hook_cron().
+ */
+function os2web_edoc_file_import_cron() {
+  // Get the import path from configuration.
+  $config = \Drupal::config('os2web_edoc_file_import.settings');
+  $import_path = $config->get('import_path');
+  if (!file_exists($import_path)) {
+    \Drupal::logger('os2web_edoc_file_import')->error('The import path does not exist. (PATH: /var/www/edoc_filer)');
+    return;
+  }
+  else {
+    \Drupal::logger('os2web_edoc_file_import')->info('Processing path: ' . $import_path);
+  }
+
+  \Drupal::logger('os2web_edoc_file_import')->info('Processing path: ' . $import_path);
+
+  $xml_files = \Drupal::service('file_system')->scanDirectory($import_path, "/\.xml$/i");
+  foreach ($xml_files as $file) {
+    \Drupal::logger('os2web_edoc_file_import')->info('Processing file: ' . $file->uri);
+    os2web_edoc_file_import_process_file($file);
+  }
+}
+
+/**
  * Creates or updates a case based on XML data.
  */
 function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
@@ -58,7 +82,7 @@ function os2web_edoc_file_import_create_or_update_document($xml, $update = FALSE
 print_r('Her er du ' . $document);
 
     $filepath = "$import_path/Files/$fileId" . '_' . $fileName;
-
+print_r('file: ' . $filepath);
     if (file_exists($filepath)) {
       $edocPublicDirectory = 'public://edoc_files';
 
@@ -128,6 +152,7 @@ function os2web_edoc_file_import_delete_document($xml) {
 function os2web_edoc_file_import_process_file($file) {
   $xml = simplexml_load_file($file->uri);
   \Drupal::logger('os2web_edoc_file_import')->info('Loaded XML file: ' . $file->uri);
+  print_r('File: ' . $file);
   // Handle create, update, delete based on XML content.
   if (!empty($xml->Created)) {
     // Create a new case.
@@ -174,23 +199,6 @@ if (file_exists($file->uri)) {
   \Drupal::logger('os2web_edoc_file_import')->info('Deleted original file from main folder: ' . $file->uri);
 }
 
-/**
- * Implements hook_cron().
- */
-function os2web_edoc_file_import_cron() {
-  // Get the import path from configuration.
-  $config = \Drupal::config('os2web_edoc_file_import.settings');
-  $import_path = $config->get('import_path');
-
-  if (!file_exists($import_path)) {
-    \Drupal::logger('os2web_edoc_file_import')->error('The import path does not exist. (PATH: /var/www/edoc_filer)');
-    return;
-  }
-
-  $xml_files = \Drupal::service('file_system')->scanDirectory($import_path, "/\.xml$/i");
-  foreach ($xml_files as $file) {
-    \Drupal::logger('os2web_edoc_file_import')->info('Processing file: ' . $file->uri);
-    os2web_edoc_file_import_process_file($file);
-  }
 }
-}
+
+
