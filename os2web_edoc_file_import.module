@@ -21,7 +21,7 @@ function os2web_edoc_file_import_cron() {
 
   \Drupal::logger('os2web_edoc_file_import')->info('Processing path: ' . $import_path);
 
-  $xml_files = \Drupal::service('file_system')->scanDirectory($import_path, "/\.xml$/i",$options = ['recurse' => FALSE]);
+  $xml_files = \Drupal::service('file_system')->scanDirectory($import_path, "/\.xml$/i");
   foreach ($xml_files as $file) {
     \Drupal::logger('os2web_edoc_file_import')->info('Processing file: ' . $file->uri);
     os2web_edoc_file_import_process_file($file);
@@ -32,10 +32,7 @@ function os2web_edoc_file_import_cron() {
  * Creates or updates a case based on XML data.
  */
 function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
-  // Using transliteration to replace Danish chars.
-  $trans = \Drupal::transliteration();
-
- $case = NULL;
+  $case = NULL;
   if ($update) {
     $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_sagsnummer' => (string) $xml->CaseNumber]);
     if (!$update && !empty($cases)) {
@@ -53,7 +50,7 @@ function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
       'type' => 'esdh_case',
       'title' => (string) $xml->CaseName,
       'field_sagsnummer' => (string) $xml->CaseNumber,
-      'field_case_name' => (string) $trans->transliterate($xml->CaseName),
+      'field_case_name' => (string) $xml->CaseName,
     ]);
     \Drupal::logger('os2web_edoc_file_import')->info('Created new case: ' . (string) $xml->CaseNumber);
   } else {
@@ -85,7 +82,7 @@ function os2web_edoc_file_import_create_or_update_document($xml, $update = FALSE
     $import_path = $config->get('import_path');
     print_r($import_path);
     print_r($xml);
-    $fileName = (string) $trans->transliterate($xml->FileName);
+    $fileName = (string) $xml->FileName;
     $fileId = (string) $xml->FileID;
     $file = NULL;
 print_r('Her er du ' . $document);
@@ -101,7 +98,7 @@ print_r('file: ' . $filepath);
       $file_system->copy($filepath, $edocPublicDirectory . '/' . basename($filepath), FileSystemInterface::EXISTS_REPLACE);
 
       $file = File::create([
-        'filename' => basename((string) $trans->transliterate($xml->FileName)),
+        'filename' => basename((string) $xml->FileName),
         'uri' => $edocPublicDirectory . '/' . basename($filepath),
         'status' => 1,
         'uid' => 1,
@@ -112,7 +109,7 @@ print_r('file: ' . $filepath);
 
     $document = Node::create([
       'type' => 'esdh_document',
-      'title' => (string) $trans->transliterate($xml->FileName),
+      'title' => (string) $xml->FileName,
       'field_document_id' => (string) $xml->FileID,
       'field_document_title' => $trans->transliterate($xml->FileName),
       'field_case_id' => (string) $xml->CaseNumber,
@@ -123,7 +120,7 @@ print_r('file: ' . $filepath);
       \Drupal::logger('os2web_edoc_file_import')->info('Assigned file to document: ' . (string) $xml->FileID);
     }
   } else {
-    $document->setTitle((string) $trans->transliterate($xml->FileName));
+    $document->setTitle((string) $xml->FileName);
     $document->set('field_document_title', $trans->transliterate($xml->FileName));
     \Drupal::logger('os2web_edoc_file_import')->info('Updated document: ' . (string) $xml->FileID);
 
@@ -161,7 +158,7 @@ function os2web_edoc_file_import_delete_document($xml) {
 function os2web_edoc_file_import_process_file($file) {
   $xml = simplexml_load_file($file->uri);
   \Drupal::logger('os2web_edoc_file_import')->info('Loaded XML file: ' . $file->uri);
-  #print_r('File: ' . $file);
+  print_r('File: ' . $file);
   // Handle create, update, delete based on XML content.
   if (!empty($xml->Created)) {
     // Create a new case.
