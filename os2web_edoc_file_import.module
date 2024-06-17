@@ -36,9 +36,13 @@ function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
   $trans = \Drupal::transliteration();
 
  $case = NULL;
+<<<<<<< HEAD
 
  
     // Control if casenumber already exists, if yes don't create two of the same
+=======
+  if ($update) {
+>>>>>>> 4084346d06225a48a414a84b6e6b99aee4374f89
     $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_sagsnummer' => (string) $xml->CaseNumber]);
     if (!$update && !empty($cases)) {
       \Drupal::logger('os2web_edoc_file_import')->error('CaseNumber ' . (string) $xml->CaseNumber . ' already exists. Skipping creation.');
