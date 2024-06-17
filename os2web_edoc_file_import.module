@@ -21,7 +21,7 @@ function os2web_edoc_file_import_cron() {
 
   \Drupal::logger('os2web_edoc_file_import')->info('Processing path: ' . $import_path);
 
-  $xml_files = \Drupal::service('file_system')->scanDirectory($import_path, "/\.xml$/i");
+  $xml_files = \Drupal::service('file_system')->scanDirectory($import_path, "/\.xml$/i",$options = ['recurse' => FALSE]);
   foreach ($xml_files as $file) {
     \Drupal::logger('os2web_edoc_file_import')->info('Processing file: ' . $file->uri);
     os2web_edoc_file_import_process_file($file);
@@ -121,9 +121,13 @@ print_r('file: ' . $filepath);
       'field_document_title' => $trans->transliterate($xml->FileName),
       'field_case_id' => (string) $xml->CaseNumber,
     ]);
-    // Setting file.
+    // Attach the file to the node's file field
     if ($file) {
-      $document->set('field_case_file', $file->id());
+      $document->set('field_case_file', [
+        'target_id' => $file->id(),
+        'display' => 1,
+        'description' => $file->getFilename(),
+      ]);
       \Drupal::logger('os2web_edoc_file_import')->info('Assigned file to document: ' . (string) $xml->FileID);
     }
   } else {
@@ -165,7 +169,10 @@ function os2web_edoc_file_import_delete_document($xml) {
 function os2web_edoc_file_import_process_file($file) {
   $xml = simplexml_load_file($file->uri);
   \Drupal::logger('os2web_edoc_file_import')->info('Loaded XML file: ' . $file->uri);
-  print_r('File: ' . $file);
+  // Debugging: Log the XML content
+  \Drupal::logger('os2web_edoc_file_import')->debug('XML content: ' . print_r($xml, TRUE));
+  //print_r('File: ' . $file);
+  
   // Handle create, update, delete based on XML content.
   if (!empty($xml->Created)) {
     // Create a new case.
