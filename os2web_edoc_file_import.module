@@ -33,18 +33,23 @@ function os2web_edoc_file_import_cron() {
  */
 function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
   $case = NULL;
-  if ($update) {
-    $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_sagsnummer' => (string) $xml->CaseNumber]);
-    if (!$update && !empty($cases)) {
-      \Drupal::logger('os2web_edoc_file_import')->error('CaseNumber ' . (string) $xml->CaseNumber . ' already exists. Skipping creation.');
-      return;
-    }
-  
-    if ($update) {
-      $case = reset($cases);
-      \Drupal::logger('os2web_edoc_file_import')->info('Loaded existing case for update: ' . (string) $xml->CaseNumber);
-    }
 
+  // Load the cases with the given CaseNumber
+  $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_sagsnummer' => (string) $xml->CaseNumber]);
+
+  // If it's not an update and cases exist, log an error and skip creation
+  if (!$update && !empty($cases)) {
+    \Drupal::logger('os2web_edoc_file_import')->error('CaseNumber ' . (string) $xml->CaseNumber . ' already exists. Skipping creation.');
+    return;
+  }
+
+  // If it's an update, load the existing case
+  if ($update && !empty($cases)) {
+    $case = reset($cases);
+    \Drupal::logger('os2web_edoc_file_import')->info ('Loaded existing case for update: ' . (string) $xml->CaseNumber);
+  }
+
+  // If case is not loaded, create a new one
   if (!$case) {
     $case = Node::create([
       'type' => 'esdh_case',
@@ -54,12 +59,14 @@ function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
     ]);
     \Drupal::logger('os2web_edoc_file_import')->info('Created new case: ' . (string) $xml->CaseNumber);
   } else {
+    // Update the existing case
     $case->setTitle((string) $xml->CaseName);
     $case->set('field_case_name', (string) $xml->CaseName);
     \Drupal::logger('os2web_edoc_file_import')->info('Updated case: ' . (string) $xml->CaseNumber);
   }
 
   $case->save();
+  \Drupal::logger('os2web_edoc_file_import')->info('Saved case with ID: ' . $case->id());
 }
 
 /**
@@ -206,5 +213,4 @@ if (file_exists($file->uri)) {
 }
 
 }
-
 
