@@ -43,22 +43,21 @@ function os2web_edoc_case_exists($caseNumber) {
 /**
  * Creates or updates a case based on XML data.
  */
-function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
+function os2web_edoc_file_import_create_or_update_case($xml, $fileID = NULL) {
   print_r('Processing case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
 
   $case = os2web_edoc_case_exists((string) $xml->CaseNumber);
 
-  // If cases exist and it's not an update, log an error and skip creation
-  if (!$update && $case) {
-  #print_r($case);
-  print_r('Skipping case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
+  // If cases exist and fileID is not set, log an error and skip creation
+  if (is_null($fileID) && $case) {
+    print_r('Skipping case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
     \Drupal::logger('os2web_edoc_file_import')->error('CaseNumber ' . (string) $xml->CaseNumber . ' already exists. Skipping creation.');
     return;
   }
 
-  // If it's an update and case does not exist, log an error
-  if ($update && !$case) {
-  print_r('Updte without a case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
+  // If fileID is set and case does not exist, log an error
+  if (!is_null($fileID) && !$case) {
+    print_r('Update without a case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
     \Drupal::logger('os2web_edoc_file_import')->error('CaseNumber ' . (string) $xml->CaseNumber . ' does not exist for update.');
     return;
   }
@@ -74,9 +73,9 @@ function os2web_edoc_file_import_create_or_update_case($xml, $update = FALSE) {
       'field_case_name' => (string) $xml->CaseName,
     ]);
     \Drupal::logger('os2web_edoc_file_import')->info('Created new case: ' . (string) $xml->CaseNumber);
-  } else {
+  } else if (!is_null($fileID)) {
     // Update the existing case
-    print_r('Creating case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
+    print_r('Updating case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
     $case->setTitle((string) $xml->CaseName);
     $case->set('field_case_name', (string) $xml->CaseName);
     \Drupal::logger('os2web_edoc_file_import')->info('Updated case: ' . (string) $xml->CaseNumber);
@@ -189,34 +188,41 @@ function os2web_edoc_file_import_delete_document($xml) {
  */
 function os2web_edoc_file_import_process_file($file) {
   $xml = simplexml_load_file($file->uri);
+  print_r('Loaded XML file: ' . $file->uri . PHP_EOL); // Debugging
   \Drupal::logger('os2web_edoc_file_import')->info('Loaded XML file: ' . $file->uri);
   // Debugging: Log the XML content
+  print_r('XML content: ' . print_r($xml, TRUE) . PHP_EOL); // Debugging
   \Drupal::logger('os2web_edoc_file_import')->debug('XML content: ' . print_r($xml, TRUE));
   
   // Handle create, update, delete based on XML content.
   if (!empty($xml->Created)) {
     // Create a new case.
     if (!empty($xml->CaseNumber)) {
+      print_r('Creating or updating case with CaseNumber: ' . (string) $xml->CaseNumber . PHP_EOL); // Debugging
       \Drupal::logger('os2web_edoc_file_import')->info('Creating or updating case with CaseNumber: ' . (string) $xml->CaseNumber);
       os2web_edoc_file_import_create_or_update_case($xml);
     }
     // Create a new document.
     if (!empty($xml->FileID)) {
+      print_r('Creating or updating document with FileID: ' . (string) $xml->FileID . PHP_EOL); // Debugging
       \Drupal::logger('os2web_edoc_file_import')->info('Creating or updating document with FileID: ' . (string) $xml->FileID);
       os2web_edoc_file_import_create_or_update_document($xml);
     }
   } elseif (!empty($xml->Updated)) {
     // Update existing case or document.
     if (!empty($xml->CaseNumber)) {
-      \Drupal::logger('os2web_edoc_file_import')->info('Updating case with CaseNumber: ' . (string) $xml->CaseNumber);
-      os2web_edoc_file_import_create_or_update_case($xml, TRUE);
+      print_r('Updating case with CaseNumber: ' . (string) $xml->CaseNumber . ' and FileID: ' . (string) $xml->FileID . PHP_EOL); // Debugging
+      \Drupal::logger('os2web_edoc_file_import')->info('Updating case with CaseNumber: ' . (string) $xml->CaseNumber . ' and FileID: ' . (string) $xml->FileID);
+      os2web_edoc_file_import_create_or_update_case($xml, (string) $xml->FileID);
     } elseif (!empty($xml->FileID)) {
+      print_r('Updating document with FileID: ' . (string) $xml->FileID . PHP_EOL); // Debugging
       \Drupal::logger('os2web_edoc_file_import')->info('Updating document with FileID: ' . (string) $xml->FileID);
       os2web_edoc_file_import_create_or_update_document($xml, TRUE);
     }
   } elseif (!empty($xml->Deleted)) {
     // Delete existing document.
     if (!empty($xml->FileID)) {
+      print_r('Deleting document with FileID: ' . (string) $xml->FileID . PHP_EOL); // Debugging
       \Drupal::logger('os2web_edoc_file_import')->info('Deleting document with FileID: ' . (string) $xml->FileID);
       os2web_edoc_file_import_delete_document($xml);
     }
@@ -226,16 +232,20 @@ function os2web_edoc_file_import_process_file($file) {
   $processed_path = dirname($file->uri) . '/processed';
   if (!file_exists($processed_path)) {
     mkdir($processed_path, 0755, TRUE);
+    print_r('Created processed directory: ' . $processed_path . PHP_EOL); // Debugging
     \Drupal::logger('os2web_edoc_file_import')->info('Created processed directory: ' . $processed_path);
   }
 
   $new_path = $processed_path . '/' . basename($file->uri);
   rename($file->uri, $new_path);
+  print_r('Moved file to processed directory: ' . $new_path . PHP_EOL); // Debugging
   \Drupal::logger('os2web_edoc_file_import')->info('Moved file to processed directory: ' . $new_path);
 
   // Delete the original file from the main folder (import folder)
   if (file_exists($file->uri)) {
     unlink($file->uri);
+    print_r('Deleted original file from main folder: ' . $file->uri . PHP_EOL); // Debugging
     \Drupal::logger('os2web_edoc_file_import')->info('Deleted original file from main folder: ' . $file->uri);
   }
 }
+
