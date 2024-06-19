@@ -6,8 +6,8 @@ Drupal 10 modul til import af eDoc XML-filer. Modulet håndterer oprettelse, opd
 
 1. Kopier modulet til `modules/custom` mappen.
 2. Aktivér modulet via Drupals admin interface.
-3. Konfigurer private filsystemsti.
+3. Konfigurer filsystemsti.
 
 ## Brug
 
-Gå til stien `admin/config/system/os2web_edoc_file_import` for at sætte stien, som der importeres fra.
+Gå til stien `admin/config/system/os2web-edoc-file-import` for at sætte stien, som der importeres fra.

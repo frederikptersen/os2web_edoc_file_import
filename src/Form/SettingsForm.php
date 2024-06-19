@@ -30,7 +30,7 @@ class SettingsForm extends ConfigFormBase {
 
     $form['import_path'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Import Path'),
+      '#title' => $this->t('Import sti'),
       '#default_value' => $config->get('import_path'),
       '#required' => TRUE,
     ];
