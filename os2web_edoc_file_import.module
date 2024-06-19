@@ -44,6 +44,7 @@ function os2web_edoc_case_exists($caseNumber) {
  * Creates or updates a case based on XML data.
  */
 function os2web_edoc_file_import_create_or_update_case($xml, $fileID = NULL) {
+  $trans = \Drupal::transliteration(); // Transliteration service
   print_r('Processing case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
 
   $case = os2web_edoc_case_exists((string) $xml->CaseNumber);
@@ -68,16 +69,16 @@ function os2web_edoc_file_import_create_or_update_case($xml, $fileID = NULL) {
     
     $case = Node::create([
       'type' => 'esdh_case',
-      'title' => (string) $xml->CaseName,
+      'title' => $trans->transliterate((string) $xml->CaseName),
       'field_sagsnummer' => (string) $xml->CaseNumber,
-      'field_case_name' => (string) $xml->CaseName,
+      'field_case_name' => $trans->transliterate((string) $xml->CaseName),
     ]);
     \Drupal::logger('os2web_edoc_file_import')->info('Created new case: ' . (string) $xml->CaseNumber);
   } else if (!is_null($fileID)) {
     // Update the existing case
     print_r('Updating case: ' . $xml->CaseNumber . PHP_EOL); // Debugging
-    $case->setTitle((string) $xml->CaseName);
-    $case->set('field_case_name', (string) $xml->CaseName);
+    $case->setTitle($trans->transliterate((string) $xml->CaseName));
+    $case->set('field_case_name', $trans->transliterate((string) $xml->CaseName));
     \Drupal::logger('os2web_edoc_file_import')->info('Updated case: ' . (string) $xml->CaseNumber);
   }
 
@@ -134,9 +135,9 @@ function os2web_edoc_file_import_create_or_update_document($xml, $update = FALSE
 
     $document = Node::create([
       'type' => 'esdh_document',
-      'title' => (string) $xml->FileName,
+      'title' => $trans->transliterate((string) $xml->FileName),
       'field_document_id' => (string) $xml->FileID,
-      'field_document_title' => $trans->transliterate($xml->FileName),
+      'field_document_title' => $trans->transliterate((string) $xml->FileName),
       'field_case_id' => (string) $xml->CaseNumber,
     ]);
     // Attach the file to the node's file field
@@ -150,8 +151,8 @@ function os2web_edoc_file_import_create_or_update_document($xml, $update = FALSE
       print_r('Assigned file to document: ' . (string) $xml->FileID . PHP_EOL); // Debugging
     }
   } else {
-    $document->setTitle((string) $xml->FileName);
-    $document->set('field_document_title', $trans->transliterate($xml->FileName));
+    $document->setTitle($trans->transliterate((string) $xml->FileName));
+    $document->set('field_document_title', $trans->transliterate((string) $xml->FileName));
     \Drupal::logger('os2web_edoc_file_import')->info('Updated document: ' . (string) $xml->FileID);
     print_r('Updated document: ' . (string) $xml->FileID . PHP_EOL); // Debugging
   }
