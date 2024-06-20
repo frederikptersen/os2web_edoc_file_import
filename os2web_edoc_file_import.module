@@ -163,6 +163,17 @@ function os2web_edoc_file_import_create_or_update_document($xml, $update = FALSE
       $document->set('field_case_reference', $case->id());
       \Drupal::logger('os2web_edoc_file_import')->info('Linked document to case: ' . (string) $xml->CaseNumber);
       print_r('Linked document to case: ' . (string) $xml->CaseNumber . PHP_EOL); // Debugging
+
+            // Update case to reference this document
+            $case_documents = $case->get('field_case_documents')->getValue();
+            $case_documents[] = ['target_id' => $document->id()];
+            $case->set('field_case_documents', $case_documents);
+            $case->save();
+            \Drupal::logger('os2web_edoc_file_import')->info('Updated case to include document: ' . (string) $xml->FileID);
+            print_r('Updated case to include document: ' . (string) $xml->FileID . PHP_EOL);
+          } else {
+            \Drupal::logger('os2web_edoc_file_import')->error('Case not found for CaseNumber: ' . (string) $xml->CaseNumber);
+            print_r('Case not found for CaseNumber: ' . (string) $xml->CaseNumber . PHP_EOL);
     }
   }
 
