@@ -128,12 +128,20 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
       \Drupal::logger('os2web_edoc_file_import')->info('Assigned file to document: ' . (string) $xml->FileID);
       print_r('Assigned file to document: ' . (string) $xml->FileID . PHP_EOL); // Debugging
     }
+    if ($case) {
+      $document->set('field_case_reference', ['target_id' => $case->id(), 'target_type' => 'node']);
+      \Drupal::logger('os2web_edoc_file_import')->info('Linked document to case: ' . $case->id());
+      print_r('Linked document to case: ' . $case->id() . PHP_EOL); // Debugging
+    }
     $document->save();
     print_r('Saved document with ID: ' . $document->id() . PHP_EOL); // Debugging
   } else {
     $document->setTitle($trans->transliterate((string) $xml->FileName));
     $document->set('field_document_title', $trans->transliterate((string) $xml->FileName));
-    $document->set('field_case_id', (string) $xml->CaseNumber); // Ensure this line is present
+    $document->set('field_case_id', (string) $xml->CaseNumber);
+    if ($case) {
+      $document->set('field_case_reference', ['target_id' => $case->id(), 'target_type' => 'node']);
+    }
     \Drupal::logger('os2web_edoc_file_import')->info('Updated document: ' . (string) $xml->FileID);
     print_r('Updated document: ' . (string) $xml->FileID . PHP_EOL); // Debugging
     $document->save();
@@ -141,10 +149,6 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
   }
 
   if ($case) {
-    $document->set('field_case_reference', $case->id());
-    \Drupal::logger('os2web_edoc_file_import')->info('Linked document to case: ' . $case->id());
-    print_r('Linked document to case: ' . $case->id() . PHP_EOL); // Debugging
-
     // Update case to reference this document
     $case_documents = $case->get('field_case_documents')->getValue();
     $case_documents[] = ['target_id' => $document->id()];
@@ -156,6 +160,7 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
 
   return $document;
 }
+
 
 /**
  * Deletes a document based on XML data.
