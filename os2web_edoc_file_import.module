@@ -86,9 +86,22 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
     $import_path = $config->get('import_path');
     $fileName = (string) $xml->FileName;
     $fileId = (string) $xml->FileID;
-    $file = NULL;
+
+    // Check if the file name ends with .pdf, if not add .pdf
+    $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+    if (strtolower($ext) !== 'pdf') {
+      \Drupal::logger('os2web_edoc_file_import')->warning('Skipped non-PDF file: ' . $fileName);
+      return;
+    }
 
     $filepath = "$import_path/Files/$fileId" . '_' . $fileName;
+
+    // Ensure only PDF files are processed
+    if (strtolower(pathinfo($filepath, PATHINFO_EXTENSION)) !== 'pdf') {
+      \Drupal::logger('os2web_edoc_file_import')->warning('Skipped non-PDF file: ' . $filepath);
+      return;
+    }
+
     if (file_exists($filepath)) {
       $edocPublicDirectory = 'public://edoc_files';
 
@@ -98,7 +111,7 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
       $file_system->copy($filepath, $edocPublicDirectory . '/' . basename($filepath), FileSystemInterface::EXISTS_REPLACE);
 
       $file = File::create([
-        'filename' => basename((string) $xml->FileName),
+        'filename' => basename($fileName),
         'uri' => $edocPublicDirectory . '/' . basename($filepath),
         'status' => 1,
         'uid' => 1,
@@ -152,7 +165,6 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
   return $document;
 }
 
-
 /**
  * Deletes a document based on XML data.
  */
@@ -173,9 +185,18 @@ function os2web_edoc_file_import_delete_document($xml) {
 function os2web_edoc_file_import_process_file($file) {
   $xml = simplexml_load_file($file->uri);
   \Drupal::logger('os2web_edoc_file_import')->info('Loaded XML file: ' . $file->uri);
+  
   // Debugging: Log the XML content
   \Drupal::logger('os2web_edoc_file_import')->debug('XML content: ' . print_r($xml, TRUE));
-  
+
+  // Ensure only PDF files are processed based on XML metadata
+  $fileName = (string) $xml->FileName;
+  $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+  if (strtolower($ext) !== 'pdf') {
+    \Drupal::logger('os2web_edoc_file_import')->warning('Skipped non-PDF file based on XML metadata: ' . $fileName);
+    return;
+  }
+
   // Handle create, update, delete based on XML content.
   if (!empty($xml->Created)) {
     // Create a new case.
