@@ -32,7 +32,7 @@ function os2web_edoc_file_import_cron() {
  *   The case node if found, or NULL if not.
  */
 function os2web_edoc_case_exists($caseNumber) {
-  $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_sagsnummer' => $caseNumber]);
+  $cases = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'esdh_case', 'field_case_id' => $caseNumber]);
   return !empty($cases) ? reset($cases) : NULL;
 }
 
@@ -50,7 +50,7 @@ function os2web_edoc_file_import_create_or_update_case($xml) {
     $case = Node::create([
       'type' => 'esdh_case',
       'title' => $trans->transliterate((string) $xml->CaseName),
-      'field_sagsnummer' => $caseNumber,
+      'field_case_id' => $caseNumber,
       'field_case_name' => $trans->transliterate((string) $xml->CaseName),
     ]);
     \Drupal::logger('os2web_edoc_file_import')->info('Created new case: ' . $caseNumber);
