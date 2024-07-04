@@ -82,78 +82,78 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
   }
 
   if (!$document) {
-    $config = \Drupal::config('os2web_edoc_file_import.settings');
-    $import_path = $config->get('import_path');
-    $fileName = (string) $xml->FileName;
-    $fileId = (string) $xml->FileID;
-
-    // Check if the file exists with the original name
-    $filepath = "$import_path/Files/$fileId" . '_' . $fileName;
-    if (!file_exists($filepath)) {
-      // Try adding .pdf if the original file doesn't exist
-      $filepath .= '.pdf';
-    }
-
-    // Ensure only PDF files are processed
-    $ext = pathinfo($filepath, PATHINFO_EXTENSION);
-    if (strtolower($ext) !== 'pdf') {
-      \Drupal::logger('os2web_edoc_file_import')->warning('Skipped non-PDF file: ' . $filepath);
-      return;
-    }
-
-    if (file_exists($filepath)) {
-      $edocPublicDirectory = 'public://edoc_files';
-
-      /** @var \Drupal\Core\File\FileSystemInterface $file_system */
-      $file_system = \Drupal::service('file_system');
-      $file_system->prepareDirectory($edocPublicDirectory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
-      $file_system->copy($filepath, $edocPublicDirectory . '/' . basename($filepath), FileSystemInterface::EXISTS_REPLACE);
-
-      $file = File::create([
-        'filename' => basename($fileName) . '.pdf',
-        'uri' => $edocPublicDirectory . '/' . basename($filepath),
-        'status' => 1,
-        'uid' => 1,
-      ]);
-      $file->save();
-      \Drupal::logger('os2web_edoc_file_import')->info('Created file entity for document: ' . (string) $xml->FileID);
-    } else {
-      \Drupal::logger('os2web_edoc_file_import')->error('File not found: ' . $filepath);
-      return;
-    }
-
     $document = Node::create([
       'type' => 'esdh_document',
-      'title' => $trans->transliterate((string) $xml->FileName),
+      'title' => $trans->transliterate((string)$xml->FileName),
       'field_document_id' => (string) $xml->FileID,
-      'field_document_title' => $trans->transliterate((string) $xml->FileName),
-      'field_case_id' => (string) $xml->CaseNumber,
     ]);
-
-    // Attach the file to the node's file field
-    if ($file) {
-      $document->set('field_case_file', [
-        'target_id' => $file->id(),
-        'display' => 1,
-        'description' => $file->getFilename(),
-      ]);
-      \Drupal::logger('os2web_edoc_file_import')->info('Assigned file to document: ' . (string) $xml->FileID);
-    }
-    if ($case) {
-      $document->set('field_case_reference', ['target_id' => $case->id(), 'target_type' => 'node']);
-      \Drupal::logger('os2web_edoc_file_import')->info('Linked document to case: ' . $case->id());
-    }
-    $document->save();
-  } else {
-    $document->setTitle($trans->transliterate((string) $xml->FileName));
-    $document->set('field_document_title', $trans->transliterate((string) $xml->FileName));
-    $document->set('field_case_id', (string) $xml->CaseNumber);
-    if ($case) {
-      $document->set('field_case_reference', ['target_id' => $case->id(), 'target_type' => 'node']);
-    }
-    \Drupal::logger('os2web_edoc_file_import')->info('Updated document: ' . (string) $xml->FileID);
-    $document->save();
   }
+  else {
+    $document->setTitle($trans->transliterate((string) $xml->FileName));
+    \Drupal::logger('os2web_edoc_file_import')->info('Updated document: ' . (string) $xml->FileID);
+  }
+
+  $document->set('field_document_title', $trans->transliterate((string) $xml->FileName));
+  $document->set('field_case_id', (string) $xml->CaseNumber);
+
+  // Set case.
+  if ($case) {
+    $document->set('field_case_reference', ['target_id' => $case->id(), 'target_type' => 'node']);
+    \Drupal::logger('os2web_edoc_file_import')->info('Linked document to case: ' . $case->id());
+  }
+
+  // Attach the file to the node's file field
+  $config = \Drupal::config('os2web_edoc_file_import.settings');
+  $import_path = $config->get('import_path');
+  $fileName = (string) $xml->FileName;
+  $fileId = (string) $xml->FileID;
+
+  // Check if the file exists with the original name
+  $filepath = "$import_path/Files/$fileId" . '_' . $fileName;
+  if (!file_exists($filepath)) {
+    // Try adding .pdf if the original file doesn't exist
+    $filepath .= '.pdf';
+  }
+
+  // Ensure only PDF files are processed
+  $ext = pathinfo($filepath, PATHINFO_EXTENSION);
+  if (strtolower($ext) !== 'pdf') {
+    \Drupal::logger('os2web_edoc_file_import')->warning('Skipped non-PDF file: ' . $filepath);
+    return;
+  }
+
+  if (file_exists($filepath)) {
+    $edocPublicDirectory = 'public://edoc_files';
+
+    /** @var \Drupal\Core\File\FileSystemInterface $file_system */
+    $file_system = \Drupal::service('file_system');
+    $file_system->prepareDirectory($edocPublicDirectory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+    $file_system->copy($filepath, $edocPublicDirectory . '/' . basename($filepath), FileSystemInterface::EXISTS_REPLACE);
+
+    $file = File::create([
+      'filename' => basename($fileName) . '.pdf',
+      'uri' => $edocPublicDirectory . '/' . basename($filepath),
+      'status' => 1,
+      'uid' => 1,
+    ]);
+    $file->save();
+    \Drupal::logger('os2web_edoc_file_import')->info('Created file entity for document: ' . (string) $xml->FileID);
+  } else {
+    \Drupal::logger('os2web_edoc_file_import')->error('File not found: ' . $filepath);
+    return;
+  }
+
+  if ($file) {
+    $document->set('field_case_file', [
+      'target_id' => $file->id(),
+      'display' => 1,
+      'description' => $file->getFilename(),
+    ]);
+    \Drupal::logger('os2web_edoc_file_import')->info('Assigned file to document: ' . (string) $xml->FileID);
+  }
+
+  \Drupal::logger('os2web_edoc_file_import')->info('Updated document: ' . (string) $xml->FileID);
+  $document->save();
 
   if ($case) {
     // Update case to reference this document
@@ -187,7 +187,7 @@ function os2web_edoc_file_import_delete_document($xml) {
 function os2web_edoc_file_import_process_file($file) {
   $xml = simplexml_load_file($file->uri);
   \Drupal::logger('os2web_edoc_file_import')->info('Loaded XML file: ' . $file->uri);
-  
+
   // Debugging: Log the XML content
   \Drupal::logger('os2web_edoc_file_import')->debug('XML content: ' . print_r($xml, TRUE));
 
