@@ -7,3 +7,7 @@ dependencies:
   - drupal:node
   - drupal:field
   - drupal:system
+  - drupal:content_moderation
+  - drupal:scheduler
+  - drupal:scheduler_content_moderation_integration
+  - drupal:language
