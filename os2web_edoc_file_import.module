@@ -125,14 +125,19 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
   if (file_exists($filepath)) {
     $edocPublicDirectory = 'public://edoc_files';
 
+    // At this point we know that we have PDF file. Remove all other extensions, keep only .pdf
+    $filenameNaked = pathinfo($fileName, PATHINFO_FILENAME); // returns ma
+    $destinationFilename = $filenameNaked . '.pdf';
+    $destinationUri =  $edocPublicDirectory . '/' . $destinationFilename;
+
     /** @var \Drupal\Core\File\FileSystemInterface $file_system */
     $file_system = \Drupal::service('file_system');
     $file_system->prepareDirectory($edocPublicDirectory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
-    $file_system->copy($filepath, $edocPublicDirectory . '/' . basename($filepath), FileSystemInterface::EXISTS_REPLACE);
+    $file_system->copy($filepath, $destinationUri, FileSystemInterface::EXISTS_REPLACE);
 
     $file = File::create([
-      'filename' => basename($fileName) . '.pdf',
-      'uri' => $edocPublicDirectory . '/' . basename($filepath),
+      'filename' => $destinationFilename,
+      'uri' => $destinationUri,
       'status' => 1,
       'uid' => 1,
     ]);
@@ -144,6 +149,9 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
   }
 
   if ($file) {
+    // Replacing file information.
+    $document->setTitle($file->getFilename());
+    $document->set('field_document_title', $file->getFilename());
     $document->set('field_case_file', [
       'target_id' => $file->id(),
       'display' => 1,
