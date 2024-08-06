@@ -8,6 +8,13 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  * Implements hook_uninstall().
  */
 function os2web_edoc_file_import_uninstall() {
+  // Delete views.
+  $view = \Drupal::entityTypeManager()->getStorage('view')->load('views.view.os2web_edoc_file_import_esdh_docs.yml');
+  if ($view) {
+    // Delete the view.
+    $view->delete();
+  }
+
   // Delete any paragraph items that may have been created for this paragraph.
   $paragraph_ids_query = \Drupal::database()->select('paragraphs_item', 'p')
     ->fields('p', ['id'])

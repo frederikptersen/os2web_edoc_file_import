@@ -12,3 +12,4 @@ dependencies:
   - drupal:scheduler_content_moderation_integration
   - drupal:language
   - drupal:paragraphs
+  - drupal:views
