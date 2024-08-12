@@ -151,7 +151,7 @@ function os2web_edoc_file_import_create_or_update_document($xml, $case = NULL, $
   if ($file) {
     // Replacing file information.
     $document->setTitle($file->getFilename());
-    $document->set('field_document_title', $file->getFilename());
+    $document->set('field_document_title', $trans->transliterate($file->getFilename()));
     $document->set('field_case_file', [
       'target_id' => $file->id(),
       'display' => 1,
